@@ -10,7 +10,7 @@ from numpy import linalg as LA
 import unittest
 
 
-# In[2]:
+# In[24]:
 
 
 
@@ -29,19 +29,20 @@ class GradientDescent:
         
         return np.array([ (function(x+delta[i])-function(x))/delta_val for i in range(n)])
         
-    def gradientDescent(self, function, initial_point, iterations=10000, learning_rate=0.1, delta_val=0.01):
-        
+    def gradientDescent(self, function, initial_point, iterations=10000, learning_rate=0.1, delta_val=0.01,decay=None):
         if type(initial_point)!=np.ndarray:
             raise ValueError("Only accepting ndarrays as input, please update your function")
         theta=initial_point
         for i in range(iterations):
+            if(decay):
+                #Updating the learning rate if the decay function were presented
+                learning_rate=decay(learning_rate,i)
             theta=theta-learning_rate*self.gradient(function,theta,delta_val)
         return theta
-
     
 
 
-# In[4]:
+# In[25]:
 
 
 class Test(unittest.TestCase):
@@ -51,6 +52,9 @@ class Test(unittest.TestCase):
     
     def f(self,x):
         return x[0]*x[0]+2*x[1]*x[1]
+    
+    def decay(self,learning_rate,i):
+        return learning_rate*(10*i+1)/(10*i+2)
     
     def test_gradient(self):
         gd=GradientDescent()
@@ -66,11 +70,15 @@ class Test(unittest.TestCase):
         gd=GradientDescent()
         min_val=gd.gradientDescent(self.f,np.array([20,20]),self.efficiency_iterations,0.1,0.0001)
         assert LA.norm(min_val-[0 ,0]) < 0.03
+        
     def test_ValueError(self):
         gd=GradientDescent()
         with self.assertRaises(ValueError) as context:
             min_val=gd.gradientDescent(self.f,5)
-    
+    def test_gradientDescent_decay(self):
+        gd=GradientDescent()
+        min_val=gd.gradientDescent(self.f,np.array([20,20]),self.iterations,0.9,0.0001,self.decay)
+        assert LA.norm(min_val-[0 ,0]) < 0.03
         
         
 if __name__== '__main__':
