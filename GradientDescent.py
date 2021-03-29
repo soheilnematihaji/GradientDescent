@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[5]:
 
 
 import numpy as np
@@ -10,7 +10,7 @@ from numpy import linalg as LA
 import unittest
 
 
-# In[24]:
+# In[27]:
 
 
 
@@ -42,10 +42,10 @@ class GradientDescent:
     
 
 
-# In[25]:
+# In[48]:
 
 
-class Test(unittest.TestCase):
+class TestGD(unittest.TestCase):
     
     iterations=500
     efficiency_iterations=100000
@@ -75,11 +75,24 @@ class Test(unittest.TestCase):
         gd=GradientDescent()
         with self.assertRaises(ValueError) as context:
             min_val=gd.gradientDescent(self.f,5)
+            
     def test_gradientDescent_decay(self):
         gd=GradientDescent()
         min_val=gd.gradientDescent(self.f,np.array([20,20]),self.iterations,0.9,0.0001,self.decay)
-        assert LA.norm(min_val-[0 ,0]) < 0.03
+        assert LA.norm(min_val-[0 ,0]) < 0.03    
         
+    def regression_J_cost_function(self,th):
+        X_train=np.array([[i] for i in range(40)])
+        Y_train=np.array([[i] for i in range(40)])
+        m=X_train.shape[0]
+        th=th.reshape([1,1])
+        return ((X_train@th.T-Y_train).T@(X_train@th.T-Y_train))[0][0]/(2*m)   
+    
+    def test_against_regression(self):
+        theta_0=np.array([0 for i in range(1)])
+        gd=GradientDescent()
+        theta=gd.gradientDescent(self.regression_J_cost_function, theta_0,iterations=500,learning_rate=0.0001,delta_val=0.0001)
+        assert LA.norm(theta-[1]) < 0.03    
         
 if __name__== '__main__':
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
